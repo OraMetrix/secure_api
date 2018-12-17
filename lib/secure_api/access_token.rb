@@ -5,11 +5,12 @@ module SecureApi
     end
 
     private
-      def authorize_by_access_token
-        unless ApiToken.valid?(params[:access_token])
-          logger.error 'API TOKEN EXCEPTION: invalid access_token'
-          head :unauthorized 
-        end
-      end
+
+    def authorize_by_access_token
+      return if ApiToken.valid?(params[:access_token])
+
+      logger.error 'API TOKEN EXCEPTION: invalid access_token'
+      head :unauthorized
+    end
   end
 end

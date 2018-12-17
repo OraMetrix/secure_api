@@ -8,9 +8,10 @@ Have include the raw gem in your vendor folder
 
     gem unpack secure_api --target vendor/gems
 
-Add it to your gemfile
+Add the gem to your `Gemfile`.
 
-    gem 'secure_api', :path => "vendor/gems/secure_api-VERSION"
+    gem 'secure_api', path: 'vendor/gems/secure_api-VERSION'
+    gem 'secure_api', git: 'https://github.com/OraMetrix/secure_api.git', branch: 'master'
 
 And then execute:
 
@@ -18,20 +19,36 @@ And then execute:
 
 ## Usage
 
+Configure the gem for your Rails app.
+
+```.rb
+# config/initializers/secure_api.rb
+SecureApi.configure do |config|
+  config.secure_api_pass_phrase = 'some top secret pass phrase'
+  config.secure_api_salt = 'some salt' # must be 16 bytes long
+end
+```
+
 To authenticate access for an api controller, include SecureApi::AccessToken
 
-    class ApiController << ApplicationController
-      include SecureApi::AccessToken
-    
-    end
+```.rb
+class ApiController << ApplicationController
+  include SecureApi::AccessToken
+
+end
+```
 
 To create an access token 
 
-    ApiToken.create
+```.rb
+ApiToken.create
+```
 
 Be sure to include it as a param
 
-    data = JSON.generate({ :method => method, :args => args, :access_token => ApiToken.create })
-    response = RestClient.post(url, data,
-      :content_type => 'application/json',
-      :cookies => request.cookies)
+```.rb
+data = JSON.generate({method: method, args: args, access_token: ApiToken.create})
+response = RestClient.post(url, data,
+  content_type: 'application/json',
+  cookies: request.cookies)
+```

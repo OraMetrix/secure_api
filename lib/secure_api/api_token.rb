@@ -1,5 +1,5 @@
 require 'openssl'
-require "base64"
+require 'base64'
 
 require 'secure_api/api_token/defaults'
 require 'secure_api/api_token/creation'

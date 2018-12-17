@@ -1,7 +1,11 @@
 require 'test_helper'
 
-class ApiTokenTest < Test::Unit::TestCase
+class ApiTokenTest < Minitest::Test
   def setup
+    SecureApi.configure do |config|
+      config.secure_api_pass_phrase = 'test pass phrase'
+      config.secure_api_salt = '0123456789012345'
+    end
     @token = ::ApiToken.create
   end
 
@@ -27,8 +31,9 @@ class ApiTokenTest < Test::Unit::TestCase
   end
 
   def test_a_token_with_the_correct_info_and_time_stamp_gt_10_mins_old_is_invalid
-    eleven_minutes_from_now = Time.now.utc.to_i + (60*11)
-    ApiToken.stubs(:timestamp).returns(eleven_minutes_from_now)
-    refute ApiToken.valid?(@token)
+    eleven_minutes_from_now = Time.now.utc.to_i + (60 * 11)
+    ApiToken.stub(:timestamp, eleven_minutes_from_now) do
+      refute ApiToken.valid?(@token)
+    end
   end
 end
