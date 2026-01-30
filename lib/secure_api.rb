@@ -18,6 +18,7 @@ module SecureApi
   #   SecureApi.configure do |config|
   #     config.secure_api_pass_phrase = '***'
   #     config.secure_api_salt = '***'
+  #     config.secure_api_cipher_name = 'AES-256-GCM'
   #   end
   #
   def self.configure

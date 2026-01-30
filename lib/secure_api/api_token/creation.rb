@@ -13,17 +13,23 @@ module ApiToken
     end
 
     def encrypted_hex
-      encrypter = build_encrypter
-      encrypted = encrypter.update new_token
-      encrypted << encrypter.final
-    end
-
-    def build_encrypter
-      encrypter = OpenSSL::Cipher.new 'AES-256-CBC'
+      encrypter = OpenSSL::Cipher.new(cipher_name)
       encrypter.encrypt
       encrypter.key = key
-      encrypter.iv = salt
-      encrypter
+      # Generate random IV for each encryption (IV doesn't need to be secret)
+      iv = encrypter.random_iv
+      encrypter.iv = iv
+      
+      encrypted = encrypter.update new_token
+      encrypted << encrypter.final
+      
+      # For GCM mode, append the authentication tag
+      if encrypter.authenticated?
+        encrypted << encrypter.auth_tag
+      end
+      
+      # Prepend IV to the encrypted data (IV is not secret, only key is)
+      iv + encrypted
     end
 
     def new_token

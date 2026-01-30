@@ -4,7 +4,10 @@ class ApiTokenTest < Minitest::Test
   def setup
     SecureApi.configure do |config|
       config.secure_api_pass_phrase = 'test pass phrase'
-      config.secure_api_salt = '0123456789012345'
+      config.secure_api_salt = '012345678901'
+      config.secure_api_cipher_name = 'AES-256-GCM'
+      config.secure_api_key_iterations = 200_000
+      config.secure_api_key_length = 32
     end
     @token = ::ApiToken.create
   end
@@ -13,8 +16,19 @@ class ApiTokenTest < Minitest::Test
     assert_equal String, @token.class
   end
 
-  def test_a_token_with_the_corre_t_info_and_time_stamp_lt_10_mins_old_is_valid
+  def test_a_token_with_the_correct_info_and_time_stamp_lt_10_mins_old_is_valid
     assert ApiToken.valid?(@token)
+  end
+
+  def test_other_ciphers
+    SecureApi.configure do |config|
+      config.secure_api_pass_phrase = 'test pass phrase'
+      config.secure_api_salt = '0123456789014444'
+      config.secure_api_cipher_name = 'AES-256-CBC'
+      config.secure_api_key_iterations = 200_000
+      config.secure_api_key_length = 32
+    end
+    ::ApiToken.valid?(::ApiToken.create)
   end
 
   def test_a_nil_toke_is_invalid
