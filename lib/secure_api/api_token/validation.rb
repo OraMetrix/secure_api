@@ -5,15 +5,7 @@ module ApiToken
   module Validation
     private
 
-    def build_decrypter
-      decrypter = OpenSSL::Cipher.new 'AES-256-CBC'
-      decrypter.decrypt
-      decrypter.key = key
-      decrypter.iv = salt
-      decrypter
-    end
-
-    def convert_string_to_hex(url_token)
+    def decode_url_token(url_token)
       return nil unless url_token
       Base64.urlsafe_decode64(url_token)
     rescue ArgumentError
@@ -21,11 +13,35 @@ module ApiToken
     end
 
     def decrypted_token(url_token)
-      decrypter = build_decrypter
-      hex_string = convert_string_to_hex(url_token)
-      return false unless hex_string
-      plain = decrypter.update hex_string
+      hex_string = decode_url_token(url_token)
+      return nil unless hex_string
+      
+      # Extract IV from the beginning of the data
+      iv_length = OpenSSL::Cipher.new(cipher_name).iv_len
+      return nil if hex_string.bytesize < iv_length
+      
+      iv = hex_string[0...iv_length]
+      remaining_data = hex_string[iv_length..-1]
+      
+      # Build decrypter with extracted IV
+      decrypter = OpenSSL::Cipher.new(cipher_name)
+      decrypter.decrypt
+      decrypter.key = key
+      decrypter.iv = iv
+      
+      # For GCM mode, extract and set the authentication tag
+      if decrypter.authenticated?
+        return nil if remaining_data.bytesize < auth_tag_length
+        ciphertext = remaining_data[0...-auth_tag_length]
+        auth_tag = remaining_data[-auth_tag_length..-1]
+        decrypter.auth_tag = auth_tag
+      else
+        ciphertext = remaining_data
+      end
+      
+      plain = decrypter.update ciphertext
       plain << decrypter.final
+      plain
     rescue OpenSSL::Cipher::CipherError
       nil
     end

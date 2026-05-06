@@ -9,7 +9,7 @@ module ApiToken
       SecureApi.configuration.secure_api_pass_phrase
     end
 
-    # Salt has to be 16 bytes long
+    # Salt for key derivation (minimum 8 bytes recommended)
     # @return [String]
     def salt
       SecureApi.configuration.secure_api_salt
@@ -18,7 +18,7 @@ module ApiToken
     # Generates a key
     # @return [String]
     def key
-      OpenSSL::PKCS5.pbkdf2_hmac_sha1(pass_phrase, salt, 20_000, 32)
+      OpenSSL::PKCS5.pbkdf2_hmac(pass_phrase, salt, key_iterations, key_length, 'sha512')
     end
 
     # 60 * 10 => ten minutes slop between server times
@@ -40,6 +40,26 @@ module ApiToken
     # @return [Integer]
     def timestamp
       Time.now.utc.to_i
+    end
+
+    # @return [String]
+    def cipher_name
+      SecureApi.configuration.secure_api_cipher_name
+    end
+
+    # @return [Integer]
+    def key_iterations
+      SecureApi.configuration.secure_api_key_iterations
+    end
+
+    # @return [Integer]
+    def key_length
+      SecureApi.configuration.secure_api_key_length
+    end
+
+    # @return [Integer]
+    def auth_tag_length
+      SecureApi.configuration.secure_api_auth_tag_length
     end
   end
 end
