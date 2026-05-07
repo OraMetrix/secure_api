@@ -23,6 +23,18 @@ module SecureApi
     # return [Integer]
     attr_accessor :secure_api_auth_tag_length
 
+    # Enable legacy token encryption (AES-256-CBC + PBKDF2-HMAC-SHA1)
+    # @return [Boolean]
+    attr_accessor :secure_api_enable_legacy_encryption
+
+    # Legacy cipher algorithm used before migration to GCM
+    # @return [String]
+    attr_accessor :secure_api_legacy_cipher_name
+
+    # PBKDF2 iteration count used for legacy SHA1 key derivation
+    # @return [Integer]
+    attr_accessor :secure_api_legacy_key_iterations
+
     def initialize
       reset
     end
@@ -37,6 +49,9 @@ module SecureApi
       @secure_api_key_iterations = 300_000
       @secure_api_key_length = 32
       @secure_api_auth_tag_length = 16
+      @secure_api_enable_legacy_encryption = false
+      @secure_api_legacy_cipher_name = 'AES-256-CBC'
+      @secure_api_legacy_key_iterations = 20_000
       nil
     end
   end

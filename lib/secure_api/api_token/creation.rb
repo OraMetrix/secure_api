@@ -13,6 +13,8 @@ module ApiToken
     end
 
     def encrypted_hex
+      return legacy_encrypted_hex if legacy_encryption_enabled?
+
       encrypter = OpenSSL::Cipher.new(cipher_name)
       encrypter.encrypt
       encrypter.key = key
@@ -30,6 +32,18 @@ module ApiToken
       
       # Prepend IV to the encrypted data (IV is not secret, only key is)
       iv + encrypted
+    end
+
+    # Legacy encryption: static IV from salt and no prepended IV/auth tag.
+    def legacy_encrypted_hex
+      encrypter = OpenSSL::Cipher.new(legacy_cipher_name)
+      encrypter.encrypt
+      encrypter.key = legacy_key
+      encrypter.iv = salt
+
+      encrypted = encrypter.update new_token
+      encrypted << encrypter.final
+      encrypted
     end
 
     def new_token
