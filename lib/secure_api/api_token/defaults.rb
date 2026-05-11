@@ -61,5 +61,29 @@ module ApiToken
     def auth_tag_length
       SecureApi.configuration.secure_api_auth_tag_length
     end
+
+    # Enables legacy token creation format (CBC + static IV from salt).
+    # @return [Boolean]
+    def legacy_encryption_enabled?
+      SecureApi.configuration.secure_api_enable_legacy_encryption
+    end
+
+    # Legacy cipher for backward-compatible decryption/encryption.
+    # @return [String]
+    def legacy_cipher_name
+      SecureApi.configuration.secure_api_legacy_cipher_name
+    end
+
+    # PBKDF2 iterations used by legacy SHA1 key derivation.
+    # @return [Integer]
+    def legacy_key_iterations
+      SecureApi.configuration.secure_api_legacy_key_iterations
+    end
+
+    # Legacy key derivation used by pre-GCM tokens.
+    # @return [String]
+    def legacy_key
+      OpenSSL::PKCS5.pbkdf2_hmac_sha1(pass_phrase, salt, legacy_key_iterations, key_length)
+    end
   end
 end

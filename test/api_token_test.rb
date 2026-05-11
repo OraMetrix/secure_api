@@ -8,6 +8,7 @@ class ApiTokenTest < Minitest::Test
       config.secure_api_cipher_name = 'AES-256-GCM'
       config.secure_api_key_iterations = 200_000
       config.secure_api_key_length = 32
+      config.secure_api_enable_legacy_encryption = false
     end
     @token = ::ApiToken.create
   end
@@ -49,5 +50,50 @@ class ApiTokenTest < Minitest::Test
     ApiToken.stub(:timestamp, eleven_minutes_from_now) do
       refute ApiToken.valid?(@token)
     end
+  end
+
+  def test_legacy_encryption_and_decryption_when_enabled
+    SecureApi.configure do |config|
+      config.secure_api_pass_phrase = 'test pass phrase'
+      config.secure_api_salt = '0123456789014444'
+      config.secure_api_enable_legacy_encryption = true
+    end
+
+    legacy_token = ::ApiToken.create
+    assert ::ApiToken.valid?(legacy_token)
+  end
+
+  def test_legacy_decryption_fallback_works_without_config
+    SecureApi.configure do |config|
+      config.secure_api_pass_phrase = 'test pass phrase'
+      config.secure_api_salt = '0123456789014444'
+      config.secure_api_enable_legacy_encryption = true
+    end
+    legacy_token = ::ApiToken.create
+
+    SecureApi.configure do |config|
+      config.secure_api_pass_phrase = 'test pass phrase'
+      config.secure_api_salt = '0123456789014444'
+      config.secure_api_cipher_name = 'AES-256-GCM'
+      config.secure_api_key_iterations = 200_000
+      config.secure_api_key_length = 32
+      config.secure_api_enable_legacy_encryption = false
+    end
+
+    assert ::ApiToken.valid?(legacy_token)
+  end
+
+  def test_new_encryption_remains_configurable
+    SecureApi.configure do |config|
+      config.secure_api_pass_phrase = 'test pass phrase'
+      config.secure_api_salt = '0123456789014444'
+      config.secure_api_enable_legacy_encryption = false
+      config.secure_api_cipher_name = 'AES-256-GCM'
+      config.secure_api_key_iterations = 200_000
+      config.secure_api_key_length = 32
+    end
+
+    token = ::ApiToken.create
+    assert ::ApiToken.valid?(token)
   end
 end
