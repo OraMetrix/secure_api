@@ -12,6 +12,7 @@ SecureApi is a Ruby gem that creates and validates time-sensitive, URL-safe toke
 
 - **Time-sensitive tokens**: Automatically expire after a configured duration
 - **AES-256-GCM encryption**: Military-grade encryption with authentication tags
+- **Legacy compatibility mode**: Optional AES-256-CBC token creation for backward compatibility
 - **URL-safe encoding**: Tokens are Base64 URL-safe encoded for use in URLs and parameters
 - **Rails integration**: Simple before_action filter for API authentication
 - **Configurable security parameters**: Customizable cipher, key derivation, and token structure
@@ -29,6 +30,9 @@ SecureApi.configure do |config|
   config.secure_api_key_iterations = 300_000
   config.secure_api_key_length = 32
   config.secure_api_auth_tag_length = 16
+  config.secure_api_enable_legacy_encryption = false
+  config.secure_api_legacy_cipher_name = 'AES-256-CBC'
+  config.secure_api_legacy_key_iterations = 20_000
   config.secure_api_prefix = 'ssprefix-'
   config.secure_api_suffix = '-sssuffix'
 end
@@ -60,6 +64,18 @@ end
   *Default:* `16`  
   Length of the authentication tag in bytes for GCM mode (16 bytes recommended).
 
+- **`secure_api_enable_legacy_encryption`** (Boolean)  
+  *Default:* `false`  
+  When `true`, new tokens are created with the legacy format (AES-256-CBC + PBKDF2-HMAC-SHA1).
+
+- **`secure_api_legacy_cipher_name`** (String)  
+  *Default:* `'AES-256-CBC'`  
+  Cipher used for legacy token encryption/decryption.
+
+- **`secure_api_legacy_key_iterations`** (Integer)  
+  *Default:* `20_000`  
+  PBKDF2 iteration count used for legacy SHA1 key derivation.
+
 - **`secure_api_prefix`** (String)  
   *Default:* `'ssprefix-'`  
   Prefix added to generated tokens for easy identification.
@@ -67,6 +83,30 @@ end
 - **`secure_api_suffix`** (String)  
   *Default:* `'-sssuffix'`  
   Suffix added to generated tokens for easy identification.
+
+## Legacy Mode Configuration
+
+Use legacy mode only when you must generate tokens compatible with older services.
+
+```ruby
+SecureApi.configure do |config|
+  config.secure_api_pass_phrase = ENV.fetch('SECURE_API_PASSPHRASE')
+  config.secure_api_salt = ENV.fetch('SECURE_API_SALT')
+
+  # Enables legacy token creation (AES-256-CBC + static IV from salt)
+  config.secure_api_enable_legacy_encryption = true
+
+  # Keep defaults unless your legacy system requires different values
+  config.secure_api_legacy_cipher_name = 'AES-256-CBC'
+  config.secure_api_legacy_key_iterations = 20_000
+end
+```
+
+Notes:
+
+- Token validation attempts the current format first, then falls back to legacy format automatically.
+- Disabling `secure_api_enable_legacy_encryption` affects token creation only; existing legacy tokens can still be validated.
+- Prefer leaving legacy mode disabled after migration so newly issued tokens use AES-256-GCM.
 
 ## Usage
 
