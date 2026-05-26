@@ -21,6 +21,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rails', '>= 7.2'
 
   spec.add_development_dependency 'bundler', '~> 2.4'
+  spec.add_development_dependency 'minitest', '>= 5.1'
+  spec.add_development_dependency 'minitest-mock'
   spec.add_development_dependency 'mocha'
   spec.add_development_dependency 'rake'
 end
