@@ -85,7 +85,7 @@ module ApiToken
       clear_token[/#{prefix}([0-9]+)#{suffix}/]
       token_time = $1 || 0
       elapsed_time = timestamp.to_i - token_time.to_i
-      elapsed_time < time_tolerance_seconds
+      elapsed_time.abs < time_tolerance_seconds
     end
   end
 end
