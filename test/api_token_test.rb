@@ -52,6 +52,13 @@ class ApiTokenTest < Minitest::Test
     end
   end
 
+  def test_a_token_with_a_future_timestamp_is_invalid
+    twenty_minutes_ago = Time.now.utc.to_i - (60 * 20)
+    ApiToken.stub(:timestamp, twenty_minutes_ago) do
+      refute ApiToken.valid?(@token)
+    end
+  end
+
   def test_legacy_encryption_and_decryption_when_enabled
     SecureApi.configure do |config|
       config.secure_api_pass_phrase = 'test pass phrase'
