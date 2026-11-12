@@ -1,11 +1,5 @@
 # SecureApi Gem
 
-**Version:** 1.0.2  
-**Authors:** DentsplySirona  
-**License:** For DentsplySirona use only
-
-## Description
-
 SecureApi is a Ruby gem that creates and validates time-sensitive, URL-safe tokens for authorizing API access. It uses AES-256-GCM encryption to generate secure tokens with configurable expiration times, providing a robust authentication mechanism for API controllers in Rails applications.
 
 ## Key Features
